@@ -2,8 +2,7 @@
   (:require [clojure.set :as set]
             [clojure.pprint :as pprint]))
 
-(comment '[cartesian-product
-           combinations
+(comment '[combinations
            count-combinations
            count-permutations
            count-subsets
@@ -16,6 +15,10 @@
            permutations
            permuted-combinations
            selections])
+
+(defn cartesian-product
+  [c1 c2]
+  (for [a c1 b c2] [a b]))
 
 (defn small-subsets
   "Assuming s has at least two elements, create all subsets of s whose sizes
