@@ -17,6 +17,7 @@
            selections])
 
 (defn cartesian-product
+  "Every unique pair of elements from c1 and c2"
   [c1 c2]
   (for [a c1 b c2] [a b]))
 
@@ -50,3 +51,11 @@
       (let [smalls (small-subsets s)
             larges (set (map #(set/difference s %) smalls))]
        (set/union smalls larges)))))
+
+(defn combinations
+  "Every combination of n items from coll"
+  ([coll n]
+   (->> (set coll)
+        subsets
+        (filter #(= n (count %))))))
+
