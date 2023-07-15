@@ -2,8 +2,7 @@
   (:require [clojure.set :as set]
             [clojure.pprint :as pprint]))
 
-(comment '[combinations
-           count-combinations
+(comment '[count-combinations
            count-permutations
            count-subsets
            drop-permutations
@@ -12,7 +11,6 @@
            nth-subset
            partitions
            permutation-index
-           permutations
            permuted-combinations
            selections])
 
@@ -59,3 +57,55 @@
         subsets
         (filter #(= n (count %))))))
 
+(defn rotations
+  [coll]
+  (let [len (count coll)
+        c (cycle coll)]
+    (map (fn [offset]
+           (take len (drop offset c)))
+         (range len))))
+
+(defn compare-seqs
+  [s1 s2]
+  (let [l1 (count s1)
+        l2 (count s2)]
+    (cond (< l1 l2) -1
+          (> l1 l2) 1
+          :else (loop [s1 s1, s2 s2]
+                  (if (empty? s1)
+                    0
+                  (case (compare (first s1) (first s2))
+                    -1 -1
+                    1 1
+                    0 (recur (rest s1) (rest s2))))))))
+
+(declare permutation-indices)
+
+(defn permutation-indices-raw
+  [size]
+  (case size
+    0 []
+    1 ['(0)]
+    (let [index (dec size)
+          tails (permutation-indices index)
+          perms (mapcat (fn [tail]
+                          (rotations (conj tail index)))
+                        tails)]
+      (sort compare-seqs perms))))
+
+(def permutation-indices (memoize permutation-indices-raw))
+
+(defn remap
+  [coll indices]
+  (if (not= (count indices) (count coll))
+    (throw "Size mismatch")
+    (let [v (vec coll)]
+      (mapv #(nth v %) indices))))
+
+(defn permutations
+  [coll]
+  (let [perms (permutation-indices (count coll))]
+    (pprint perms)
+    (map #(remap coll %) perms)))
+
+(permutations [:a :b])
