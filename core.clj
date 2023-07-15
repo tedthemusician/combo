@@ -107,5 +107,3 @@
   (let [perms (permutation-indices (count coll))]
     (pprint perms)
     (map #(remap coll %) perms)))
-
-(permutations [:a :b])
