@@ -46,9 +46,4 @@
       1 #{s}
       (let [smalls (small-subsets s)
             larges (set (map #(set/difference s %) smalls))]
-        (set/union smalls larges)))))
-
-(map subsets (map #() (range 3)))
-
-; (map subsets (map set (map #(range %) (range 5))))
-
+       (set/union smalls larges)))))
