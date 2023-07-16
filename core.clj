@@ -1,6 +1,7 @@
 (ns combo.core
   (:require [clojure.set :as set]
-            [clojure.pprint :as pprint]))
+            [clojure.pprint :as pprint]
+            [clojure.math.combinatorics :as cmb]))
 
 (comment '[count-combinations
            count-permutations
@@ -19,7 +20,7 @@
   [c1 c2]
   (for [a c1 b c2] [a b]))
 
-(defn small-subsets
+(defn- small-subsets
   "Assuming s has at least two elements, create all subsets of s whose sizes
   are at most half the size of the original set, rounding *up* for sets of odd
   size."
@@ -57,7 +58,7 @@
         subsets
         (filter #(= n (count %))))))
 
-(defn rotations
+(defn- rotations
   [coll]
   (let [len (count coll)
         c (cycle coll)]
@@ -65,7 +66,7 @@
            (take len (drop offset c)))
          (range len))))
 
-(defn compare-seqs
+(defn- compare-seqs
   [s1 s2]
   (let [l1 (count s1)
         l2 (count s2)]
@@ -79,31 +80,37 @@
                     1 1
                     0 (recur (rest s1) (rest s2))))))))
 
-(declare permutation-indices)
-
-(defn permutation-indices-raw
-  [size]
-  (case size
-    0 []
-    1 ['(0)]
-    (let [index (dec size)
-          tails (permutation-indices index)
-          perms (mapcat (fn [tail]
-                          (rotations (conj tail index)))
-                        tails)]
-      (sort compare-seqs perms))))
-
-(def permutation-indices (memoize permutation-indices-raw))
-
-(defn remap
+(defn- remap
   [coll indices]
   (if (not= (count indices) (count coll))
     (throw "Size mismatch")
     (let [v (vec coll)]
       (mapv #(nth v %) indices))))
 
+(declare perm-indices)
+
+(defn perm-indices-raw
+  [size]
+  (case size
+    0 []
+    1 [[0]]
+    (let [plain-tails (perm-indices (dec size))
+          offsets (range size)]
+      (mapcat (fn [offset]
+                (map (fn [tail]
+                       (let [new-tail (map (fn [elem]
+                                             (if (>= elem offset)
+                                               (inc elem)
+                                               elem))
+                                           tail)]
+                         (cons offset new-tail)))
+                     plain-tails))
+              offsets))))
+
+(def perm-indices (memoize perm-indices-raw))
+
 (defn permutations
   [coll]
-  (let [perms (permutation-indices (count coll))]
-    (pprint perms)
-    (map #(remap coll %) perms)))
+  (let [size (count coll)
+        mappings (perm-indices size)]
+    (map #(remap coll %) mappings)))
